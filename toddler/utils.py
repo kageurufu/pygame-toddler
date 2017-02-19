@@ -2,8 +2,7 @@ import random
 import typing
 
 import pygame
-
-from toddler.basic_types import Vec2D
+from pygame.math import Vector2
 
 
 def iter_sequence(seq: typing.List[typing.Any]):
@@ -12,5 +11,5 @@ def iter_sequence(seq: typing.List[typing.Any]):
             yield i
 
 
-def random_pos_within(screen: pygame.Surface) -> Vec2D:
-    return Vec2D(random.randint(0, screen.get_width()), random.randint(0, screen.get_height() / 2))
+def random_pos_within(screen: pygame.Surface) -> Vector2:
+    return Vector2(random.randint(0, screen.get_width()), random.randint(0, screen.get_height() / 2))

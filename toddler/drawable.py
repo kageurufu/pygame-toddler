@@ -1,24 +1,19 @@
 import typing
 
 import pygame
-
-from toddler.basic_types import Vec2D
+from pygame.math import Vector2
 
 
 class Drawable(object):
     surface: pygame.Surface
     pos: pygame.Rect
-    age: int
 
-    def __init__(self, surface: pygame.Surface, pos: Vec2D):
+    def __init__(self, surface: pygame.Surface, pos: Vector2):
         self.surface = surface
-        self.pos = Vec2D(*pos)
-        self.age = 0
+        self.pos = Vector2(pos)
 
-    def tick(self, t: int, screen):
-        self.age += t
-        self.pos = Vec2D(self.pos.x, self.pos.y + t / 2)
-        return self.pos.y < screen.get_height()
+    def tick(self, t: int, screen) -> bool:
+        return True
 
     def blit(self, screen: pygame.Surface):
         screen.blit(self.surface, self.pos)
