@@ -21,34 +21,59 @@ class Mode(Enum):
     PLAY = 2
 
 
-shapes: DrawableList = []
+class GameState(object):
+    screen: pygame.Surface
+    clock: pygame.time.Clock
+    font16: pygame.font.Font
+    drawables: DrawableList
+    running: bool
+    desired_framerate: int = 60
 
+    def __init__(self):
+        self.screen = pygame.display.set_mode((0, 0), pygame.FULLSCREEN | pygame.HWSURFACE, 32)
+        self.drawables = []
+        self.running = True
+        self.clock = pygame.time.Clock()
+        self.font16 = pygame.font.SysFont('Calibri', 16)
 
-def mainloop(screen: pygame.Surface):
-    running = True
-    font16: pygame.font.Font = pygame.font.SysFont('Calibri', 16)
-    clock: pygame.time.Clock = pygame.time.Clock()
-
-    while running:
-        clock.tick(60)
+    def events(self):
         for event in pygame.event.get():
             if event.type == pygame.QUIT or event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
-                running = False
+                self.running = False
             elif event.type == pygame.KEYDOWN:
                 if pygame.key.name(event.key) in string.ascii_letters + string.digits:
-                    shapes.append(Letter.new_random(screen, pygame.key.name(event.key)))
+                    self.drawables.append(Letter.new_random(self.screen, pygame.key.name(event.key)))
                 else:
-                    shapes.append(random_shape(screen, shapes))
+                    self.drawables.append(random_shape(self.screen, self.drawables))
 
-        screen.fill(BLACK)
+    def tick(self):
+        t = self.clock.get_time()
+        for drawable in list(self.drawables):
+            if not drawable.tick(t, self.screen):
+                self.drawables.remove(drawable)
 
-        for shape in list(shapes):
-            if not shape.tick(clock.get_time(), screen):
-                shapes.remove(shape)
-            else:
-                shape.blit(screen)
+    def blit(self):
+        for drawable in self.drawables:
+            drawable.blit(self.screen)
 
-        screen.blit(font16.render('{:0.1f} fps'.format(clock.get_fps()), False, WHITE), (10, font16.get_height()))
+    def draw_start(self):
+        self.screen.fill(BLACK)
+
+    def draw_fps(self):
+        self.screen.blit(
+            self.font16.render('{:0.1f} fps'.format(self.clock.get_fps()), False, WHITE),
+            (10, self.font16.get_height()))
+
+    def draw_flip(self):
         pygame.display.flip()
 
-    pygame.quit()
+    def loop(self):
+        while self.running:
+            self.clock.tick(self.desired_framerate)
+            self.events()
+            self.tick()
+            self.draw_start()
+            self.blit()
+            self.draw_flip()
+
+        pygame.quit()
