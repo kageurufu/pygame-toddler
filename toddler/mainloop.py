@@ -9,6 +9,7 @@ import pygame.event
 import pygame.font
 import pygame.surface
 import pygame.time
+from pygame.math import Vector2
 
 from toddler.colors import BLACK, WHITE
 from toddler.drawable import DrawableList
@@ -43,18 +44,24 @@ class GameState(object):
         self.game_mode = GameMode.ATTRACT
 
     def events(self):
+        handled_event = False
         for event in pygame.event.get():
             if event.type == pygame.QUIT or event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
                 self.running = False
             elif event.type == pygame.KEYDOWN:
-                if self.game_mode == GameMode.ATTRACT:
-                    self.game_mode = GameMode.ACTIVE
-                    self.last_keypress = 0
-
                 if pygame.key.name(event.key) in string.ascii_letters + string.digits:
-                    self.drawables.append(Letter.new_random(self.screen, pygame.key.name(event.key)))
+                    self.drawables.append(Letter.new_random(self.screen, self.drawables, pygame.key.name(event.key)))
                 else:
                     self.drawables.append(random_shape(self.screen, self.drawables))
+                handled_event = True
+            elif event.type == pygame.MOUSEBUTTONDOWN:
+                firework = Firework.new_random(self.screen, self.drawables)
+                firework.pos = Vector2(pygame.mouse.get_pos()) - (Vector2(firework.surface.get_size()) / 2)
+                self.drawables.append(firework)
+                handled_event = True
+        if handled_event and self.game_mode == GameMode.ATTRACT:
+            self.game_mode = GameMode.ACTIVE
+            self.last_keypress = 0
 
     def tick(self):
         t = self.clock.get_time()
